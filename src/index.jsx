@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import "./css/custom.scss";
 import * as Fa from 'react-icons/fa';
 import './css/bootstrap/scss/bootstrap.scss';
+import tempData from './data/maskMap_20200214_1110.json';
 
 let map = null,
     osm = new L.TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -12,8 +13,6 @@ let map = null,
         }),
     myLocationIcon = L.icon({iconUrl: "img/crosshairs-solid.svg", iconSize: [24, 24]}),
     myLocationMar = L.marker([0, 0], {icon: myLocationIcon}),
-    xhr = new XMLHttpRequest(),
-
     storeIcon = [
         L.icon({iconUrl: "img/map-marker-red.svg", iconSize: [48, 48], iconAnchor: [24, 48], popupAnchor: [0, -48]}),
         L.icon({iconUrl: "img/map-marker-orange.svg", iconSize: [48, 48], iconAnchor: [24, 48], popupAnchor: [0, -48]}),
@@ -44,14 +43,81 @@ function markerIconIndex(str, num) {
     }
 }
 
-function buildMap(maskIconType, dataUpdateTimeChange) {
-    map = L.map("mapid", {zoomControl: false, minZoom: 6, maxZoom: 18});
-    map.addLayer(osm);
-    map.setView([23.583, 120.582], 6);
-    map.setMaxBounds([[40, 100], [10, 140]]);
-    xhr.addEventListener("load", function () {
-        dataUpdateTimeChange(new Date());
-        let mapData = JSON.parse(this.responseText), dataIndex = {};
+
+function App() {
+    let [myLocation, setMyLocation] = useState({coords: null, accuracy: null});
+    let [mapInfo, setMapInfo] = useState({dataUpdateTime: null, maskIconType: "adult", openNotesDialog: true});
+    const purchaseData = {day: ["日", "一", "二", "三", "四", "五", "六"], parity: ["不限", "奇數", "偶數", "奇數", "偶數", "奇數", "偶數"]};
+
+
+    function popupContentTemplate(properties) {
+        return '<table class="' + (new Date().getTime()) + '">' +
+            '<tbody>' +
+            '<tr>' +
+            '<th>藥局名稱</th>' +
+            '<td>' + properties.name + '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<th>藥局地址</th>' +
+            '<td>' + "<a href='https://www.google.com/maps?q=" + properties.name + "+" + properties.address + "' target='_blank'>" +
+            properties.address + "</a>" + '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<th>藥局電話</th>' +
+            '<td>' + properties.phone + '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<th>大人口罩</th>' +
+            '<td class="mask_adult">' + properties.mask_adult + '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<th>小孩口罩</th>' +
+            '<td class="mask_child">' + properties.mask_child + '</td>' +
+            '</tr>' +
+            '<tr>' +
+            '<th>更新時間</th>' +
+            '<td class="storeUpdated">' + properties.updated + '</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>';
+    }
+
+    function reloadDataDelay() {
+        setTimeout(() => {
+            reloadData()
+        }, 30000)
+
+    }
+
+    function reloadData() {
+        let updatXhr = new XMLHttpRequest;
+        let dataIndex = {};
+        updatXhr.addEventListener("load", function () {
+            dataUpdateTimeChange(new Date());
+            let mapDataJson = JSON.parse(this.responseText);
+            for (let i = 0; i < mapDataJson.features.length; i++) {
+                dataIndex[mapDataJson.features[i].properties.id] = i;
+            }
+            storeMarkers.eachLayer((layer) => {
+                let stat = mapDataJson.features[dataIndex[layer.options.dataId]];
+                layer._popup.setContent(popupContentTemplate(stat.properties));
+                layer.setIcon(storeIcon[markerIconIndex(mapInfo.maskIconType, layer.options["mask_" + mapInfo.maskIconType])]);
+            });
+            storeMarkers.refreshClusters();
+            reloadDataDelay();
+        });
+        updatXhr.open("GET", "https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json?time=" + new Date().getTime());
+        updatXhr.send();
+    }
+
+
+    function buildMap(maskIconType, dataUpdateTimeChange) {
+        map = L.map("mapid", {zoomControl: false, minZoom: 6, maxZoom: 18});
+        map.addLayer(osm);
+        map.setView([23.583, 120.582], 6);
+        map.setMaxBounds([[40, 100], [10, 140]]);
+        dataUpdateTimeChange(new Date("2020-02-14 11:10:00"));
+        let mapData = tempData, dataIndex = {};
         for (let i = 0; i < mapData.features.length; i++) {
             dataIndex[mapData.features[i].properties.id] = i;
             mapData.features[i].properties.phone = mapData.features[i].properties.phone.replace(/ /g, "");
@@ -65,56 +131,21 @@ function buildMap(maskIconType, dataUpdateTimeChange) {
                 {
                     icon: storeIcon[markerIconIndex(maskIconType, storeData.properties.mask_adult)],
                     mask_adult: storeData.properties.mask_adult,
-                    mask_child: storeData.properties.mask_child
+                    mask_child: storeData.properties.mask_child,
+                    dataId: storeData.properties.id
                 }
             );
-            marker.bindPopup('' +
-                '<table class="table table-sm">' +
-                '<tbody>' +
-                '<tr>' +
-                '<th>藥局名稱</th>' +
-                '<td>' + storeData.properties.name + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<th>藥局地址</th>' +
-                '<td>' + "<a href='https://www.google.com/maps?q=" + storeData.properties.name + "+" + storeData.properties.address + "' target='_blank'>" + storeData.properties.address + "</a>" + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<th>藥局電話</th>' +
-                '<td>' + storeData.properties.phone + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<th>大人口罩</th>' +
-                '<td>' + storeData.properties.mask_adult + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<th>小孩口罩</th>' +
-                '<td>' + storeData.properties.mask_child + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<th>更新時間</th>' +
-                '<td>' + storeData.properties.updated + '</td>' +
-                '</tr>' +
-                '</tbody>' +
-                '</table>'
-                , {maxWidth: "auto"});
+            marker.bindPopup(popupContentTemplate(storeData.properties), {maxWidth: "auto"});
             storeMarkers.addLayer(marker);
         });
         map.addLayer(storeMarkers);
-    });
-    xhr.open("GET", "https://raw.githubusercontent.com/kiang/pharmacies/master/json/points.json?time=" + new Date().getTime());
-    xhr.send();
-}
-
-
-function App() {
-    let [msg, setMsg] = useState("無訊息");
-    let [myLocation, setMyLocation] = useState({coords: null, accuracy: null});
-    let [mapInfo, setMapInfo] = useState({dataUpdateTime: null, maskIconType: "adult", openNotesDialog: true});
-    const purchaseData = {day: ["日", "一", "二", "三", "四", "五", "六"], parity: ["不限", "奇數", "偶數", "奇數", "偶數", "奇數", "偶數"]};
+        reloadData();
+    }
 
     function dataUpdateTimeChange(dataUpdateTime) {
-        setMapInfo({...mapInfo, dataUpdateTime: dataUpdateTime});
+        setMapInfo((preData) => {
+            return {...preData, dataUpdateTime: dataUpdateTime}
+        });
     }
 
     useEffect(() => {
@@ -123,7 +154,6 @@ function App() {
 
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition((position) => {
-                setMsg("  緯度 (Latitude): " + position.coords.latitude + ",經度 (Longitude): " + position.coords.longitude);
                 setMyLocation({
                     accuracy: position.coords.accuracy,
                     coords: [position.coords.latitude, position.coords.longitude]
@@ -133,8 +163,6 @@ function App() {
                 myLocationMar.addTo(map);
             }, function () {
             }, {enableHighAccuracy: true});//有拿到位置就呼叫 showPosition 函式
-        } else {
-            setMsg("您的瀏覽器不支援顯示地理位置");
         }
     }, []);
 
@@ -200,10 +228,13 @@ function App() {
                 </tbody>
             </table>
         </div>
-        <div className="msg"><Fa.FaMapMarkerAlt/>Copyright 2020 by <a href="https://github.com/silverLibra/mask_map" target="_blank">Hung Yi Cheng  - gitHub</a></div>
+        <div className="msg"><Fa.FaMapMarkerAlt/>Copyright 2020 by <a href="https://github.com/silverLibra/mask_map"
+                                                                      target="_blank">Hung Yi Cheng - gitHub</a></div>
         {mapInfo.openNotesDialog &&
         <div className="noteMsgDialogBackGround" onClick={toggleNoteDialog}>
-            <div className="noteMsgDialog" onClick={(e)=>{e.stopPropagation();}}>
+            <div className="noteMsgDialog" onClick={(e) => {
+                e.stopPropagation();
+            }}>
                 <div className="text-right">
                     <button onClick={toggleNoteDialog}>
                         <Fa.FaTimes/>
