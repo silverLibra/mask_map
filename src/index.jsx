@@ -5,10 +5,10 @@ import * as Fa from 'react-icons/fa';
 import './css/bootstrap/scss/bootstrap.scss';
 
 let map = null,
-    osm = new L.TileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    osm = new L.TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             minZoom: 3, maxZoom: 19,
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }),
     myLocationIcon = L.icon({iconUrl: "img/crosshairs-solid.svg", iconSize: [24, 24]}),
     myLocationMar = L.marker([0, 0], {icon: myLocationIcon}),
@@ -200,7 +200,7 @@ function App() {
                 </tbody>
             </table>
         </div>
-        <div className="msg"><Fa.FaMapMarkerAlt/>Copyright 2020 by Silver 練習用</div>
+        <div className="msg"><Fa.FaMapMarkerAlt/>Copyright 2020 by <a href="https://github.com/silverLibra/mask_map" target="_blank">Hung Yi Cheng  - gitHub</a></div>
         {mapInfo.openNotesDialog &&
         <div className="noteMsgDialogBackGround" onClick={toggleNoteDialog}>
             <div className="noteMsgDialog" onClick={(e)=>{e.stopPropagation();}}>
