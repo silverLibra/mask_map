@@ -1,0 +1,114 @@
+@import url(//fonts.googleapis.com/earlyaccess/notosanstc.css);
+body {
+  font-family: 'Noto Sans TC', Helvetica, Arial, sans-serif !important;
+}
+.leaflet-popup-content{
+  display: block;
+  padding: 5px;
+  word-break: keep-all;
+  font-size: 14px;
+  color:#6c757d;
+}
+
+
+.data-cluster {
+  border-radius: 50%;
+  line-height: 30px;
+  text-align: center;
+  font-size: 1rem;
+}
+.data-cluster:before,
+.data-cluster:after {
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+.data-cluster:before {
+  background: rgba(197, 129, 75, 0.38);
+  width: 60px;
+  height: 60px;
+  z-index: -2
+}
+.data-cluster:after {
+  background: rgba(197, 129, 75, 0.38);
+  width:40px;
+  height:40px;
+  z-index:-1
+}
+.control-menu{
+  position: absolute;
+  right:5px;
+  bottom:50px;
+}
+.control-menu button{
+  z-index: 1000;
+  position: relative;
+  margin: .2rem;
+  padding: 0;
+  border: 1px solid #2e803873;
+  border-radius: .5rem;
+  width: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  background: #76cc815e;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s ease;
+  color:#196322;
+}
+
+
+
+html, body{
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+}
+.leaflet-container {
+  height: calc(100vh - 30px);
+  width: 100%;
+}
+
+.msg {
+  background: white;
+  padding: 5px 10px;
+  height: 30px;
+}
+
+.noteMsgDialogBackGround{
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1040;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.noteMsgDialog{
+  position: relative;
+  background: white;
+  top: 20%;
+  border-radius: 10px;
+  line-height: 1.8;
+  width: 80%;
+  margin: 0 auto;
+  padding: 0 5px 20px 5px;
+}
+.noteMsgContent {
+  padding: 0 15px;
+}
+.noteMsgDialog button{
+  background: transparent;
+  font-family: inherit;
+  font-size: 1.5rem;
+  text-align: center;
+  color:grey;
+  outline: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
