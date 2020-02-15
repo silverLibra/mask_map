@@ -101,6 +101,8 @@ function App() {
             storeMarkers.eachLayer((layer) => {
                 let stat = mapDataJson.features[dataIndex[layer.options.dataId]];
                 layer._popup.setContent(popupContentTemplate(stat.properties));
+                layer.options.mask_adult = stat.properties.mask_adult;
+                layer.options.mask_child = stat.properties.mask_child;
                 layer.setIcon(storeIcon[markerIconIndex(mapInfo.maskIconType, layer.options["mask_" + mapInfo.maskIconType])]);
             });
             storeMarkers.refreshClusters();
